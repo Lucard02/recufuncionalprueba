@@ -10,16 +10,16 @@ data Aventurero = UnAventurero{
     salud :: Number,
     coraje :: Bool,
     criterio :: Criterio 
-} Deriving (Show,Eq)
+} deriving (Show,Eq)
 
-av1 :: Aventrurero
+av1 :: Aventurero
 av1 = UnAventurero "Lucas" 10 100 True conformista
 
-av2 :: Aventrurero
-av2 = UnAventurero "Matias" 20 50 False valiente
+av2 :: Aventurero
+av2 = UnAventurero "Matias" 20 50 False valiente 
 
-av3 :: Aventrurero
-av3 = UnAventurero "Pepe" 30 70 True lightPacker
+av3 :: Aventurero
+av3 = UnAventurero "Pepe" 30 70 True (lightPacker 15)
 
 --type Criterio = Aventurero -> Encuentro -> Bool
 type Criterio = Aventurero -> Encuentro -> Bool
@@ -28,11 +28,18 @@ conformista :: Criterio
 conformista _ _ = True
 
 valiente :: Criterio
-valiente aventurero encuentro
-    | aventurero = 
+valiente aventurero personaje
+    | (coraje (encuentroConPersonaje aventurero personaje) == True || 50 < salud (encuentroConPersonaje aventurero personaje)) = True
+    | otherwise = False
 
---estaConforme :: Aventrurero -> Encuentro -> Bool
---estaConforme aventurero encuentro = 
+lightPacker :: Number -> Criterio
+lightPacker umbral aventurero personaje
+    |  umbral < carga (encuentroConPersonaje aventurero personaje) = True
+    | otherwise = False
+
+estaConforme :: Aventurero -> Encuentro -> Bool
+estaConforme aventurero personaje = (criterio aventurero) aventurero personaje
+    
 
 --2a
 
@@ -45,11 +52,11 @@ nombreMasDe5 :: Aventureros -> Bool
 nombreMasDe5 aventureros = any masDe5 aventureros
 
 masDe5 :: Aventurero -> Bool
-masDe5 aventrurero = ( length nombre aventurero) > 5
+masDe5 aventurero = length (nombre aventurero) > 5
 --2b
 
 cargaTotal :: Aventureros -> Number
-cargaTotal aventureros = sum (filter cargaPar) aventureros
+cargaTotal aventureros = sum (map carga (filter cargaPar aventureros))
 
 cargaPar :: Aventurero -> Bool
 cargaPar aventurero = even (carga aventurero)
@@ -59,22 +66,25 @@ cargaPar aventurero = even (carga aventurero)
 type Encuentro = Aventurero -> Aventurero 
 
 encuentroConPersonaje :: Encuentro -> Aventurero -> Aventurero
-encuentroConPersonaje personaje aventrurero = reducirCarga 1 . personaje aventurero 
+encuentroConPersonaje personaje aventurero = (reducirCarga 1 . personaje) aventurero 
 
 curandero :: Encuentro
-curandero  aventrurero = aumentarSalud 20 . reducirCarga (carga aventrurero / 2)
+curandero  aventurero = (aumentarSaludPorcentual 20 . reducirCarga (carga aventurero / 2)) aventurero
 
 inspirador :: Encuentro
-inspirador = aumentarSalud 10 . otorgarCoraje
+inspirador = aumentarSaludPorcentual 10 . otorgarCoraje
 
 embaucador :: Encuentro
-embaucador = cambiarCriterio (lightPacker) . aumentarSaludPorcentual (-50). reducirCarga (-10) . (not otorgarCoraje)
+embaucador = cambiarCriterio (lightPacker 10) . aumentarSaludPorcentual (-50). reducirCarga (-10) . quitarCoraje
 
-otorgarCoraje :: Aventrurero -> Aventurero
-otorgarCoraje aventurero = aventrurero{coraje = True}
+otorgarCoraje :: Aventurero -> Aventurero
+otorgarCoraje aventurero = aventurero{coraje = True}
 
-reducirCarga :: Number -> Aventrurero -> Aventurero
-reducirCarga num aventurero = aventrurero{carga = carga aventrurero - num}
+quitarCoraje :: Aventurero -> Aventurero
+quitarCoraje aventurero = aventurero{coraje = False}
+
+reducirCarga :: Number -> Aventurero -> Aventurero
+reducirCarga num aventurero = aventurero{carga = carga aventurero - num}
 
 aumentarSaludPorcentual :: Number -> Aventurero -> Aventurero
 aumentarSaludPorcentual num aventrurero = aventrurero{salud = salud aventrurero + (salud aventrurero) * (num/100)}
